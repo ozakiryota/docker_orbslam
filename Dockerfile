@@ -115,13 +115,34 @@ RUN mkdir /home/orb_slam2_ws/dataset && \
 	cd /home/orb_slam2_ws/dataset && \
 	wget https://vision.in.tum.de/rgbd/dataset/freiburg1/rgbd_dataset_freiburg1_xyz.tgz && \
 	tar -zxf rgbd_dataset_freiburg1_xyz.tgz
-	# ./Examples/Monocular/mono_tum Vocabulary/ORBvoc.txt Examples/Monocular/TUM1.yaml ../dataset/rgbd_dataset_freiburg1_xyz
+########## for ROS ##########
+RUN apt-get update && apt-get install -y \
+	ros-kinetic-tf ros-kinetic-image-transport ros-kinetic-cv-bridge 
+RUN sed -i "48a \${EIGEN3_INCLUDE_DIR}" /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/CMakeLists.txt && \
+	sed -i "58a -lboost_system" /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/CMakeLists.txt && \
+	sed -i '1s/^/#include "unistd.h"\n/' /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/src/AR/ViewerAR.cc
+RUN echo "export ROS_PACKAGE_PATH=\${ROS_PACKAGE_PATH}:/home/orb_slam2_ws/ORB_SLAM2/Examples/ROS:/home/orb_slam2_ws/ORB_SLAM2/" >> ~/.bashrc
+# RUN cd /home/orb_slam2_ws/dataset && \
+# 	apt-get update && apt-get install unzip && \
+# 	wget http://vmcremers8.informatik.tu-muenchen.de/lsd/LSD_room.bag.zip && \
+# 	unzip LSD_room.bag.zip
 ########## scripts ##########
 RUN mkdir /home/orb_slam2_ws/scripts
+RUN echo "#!/bin/bash\n \
+		cd /home/orb_slam2_ws/ORB_SLAM2 && \
+		./build_ros.sh \
+	" >>  /home/orb_slam2_ws/scripts/ros_build.sh &&\
+	chmod 755 /home/orb_slam2_ws/scripts/ros_build.sh
 RUN echo "#!/bin/bash\n \
 		/home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/mono_tum /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/TUM1.yaml /home/orb_slam2_ws/dataset/rgbd_dataset_freiburg1_xyz \
 	" >>  /home/orb_slam2_ws/scripts/test_dataset.sh &&\
 	chmod 755 /home/orb_slam2_ws/scripts/test_dataset.sh
+RUN echo "#!/bin/bash\n \
+		roscore & \n \
+		rosrun ORB_SLAM2 Mono /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/TUM1.yaml & \n \
+		rosbag play LSD_room.bag /image_raw:=/camera/image_raw \
+	" >>  /home/orb_slam2_ws/scripts/test_ros_dataset.sh &&\
+	chmod 755 /home/orb_slam2_ws/scripts/test_ros_dataset.sh
 ########## nvidia-docker hooks ##########
 LABEL com.nvidia.volumes.needed="nvidia_driver"
 ENV PATH /usr/local/nvidia/bin:${PATH}

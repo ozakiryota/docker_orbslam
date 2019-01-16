@@ -8,4 +8,3 @@ nvidia-docker run --rm --name orbslam -it \
 	--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
 	--net=host \
 	orbslam:latest
-
