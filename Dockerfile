@@ -126,6 +126,9 @@ RUN echo "export ROS_PACKAGE_PATH=\${ROS_PACKAGE_PATH}:/home/orb_slam2_ws/ORB_SL
 # 	apt-get update && apt-get install unzip && \
 # 	wget http://vmcremers8.informatik.tu-muenchen.de/lsd/LSD_room.bag.zip && \
 # 	unzip LSD_room.bag.zip
+########## calibration files ##########
+RUN mkdir /home/orb_slam2_ws/calibration_files
+COPY realsense.yaml /home/orb_slam2_ws/calibration_files
 ########## scripts ##########
 RUN mkdir /home/orb_slam2_ws/scripts
 RUN echo "#!/bin/bash\n \
@@ -143,6 +146,11 @@ RUN echo "#!/bin/bash\n \
 		rosbag play LSD_room.bag /image_raw:=/camera/image_raw \
 	" >>  /home/orb_slam2_ws/scripts/test_ros_dataset.sh &&\
 	chmod 755 /home/orb_slam2_ws/scripts/test_ros_dataset.sh
+RUN echo "#!/bin/bash\n \
+		roscore & \n \
+		rosrun ORB_SLAM2 Mono /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/calibration_files/realsense.yaml & \n \
+	" >>  /home/orb_slam2_ws/scripts/realsense.sh &&\
+	chmod 755 /home/orb_slam2_ws/scripts/realsense.sh
 ########## nvidia-docker hooks ##########
 LABEL com.nvidia.volumes.needed="nvidia_driver"
 ENV PATH /usr/local/nvidia/bin:${PATH}
