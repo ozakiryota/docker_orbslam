@@ -12,6 +12,6 @@ git clone https://github.com/ozakiryota/docker_orbslam
 ## Run
 ./run.sh
 ## scripts in the containar
-./ros_build.sh
-./test_dataset.sh
+./ros_build.sh  
+./test_dataset.sh  
 ./realsense.sh
