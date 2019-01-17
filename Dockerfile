@@ -126,31 +126,35 @@ RUN echo "export ROS_PACKAGE_PATH=\${ROS_PACKAGE_PATH}:/home/orb_slam2_ws/ORB_SL
 # 	apt-get update && apt-get install unzip && \
 # 	wget http://vmcremers8.informatik.tu-muenchen.de/lsd/LSD_room.bag.zip && \
 # 	unzip LSD_room.bag.zip
+COPY ros_mono_pub.cc /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/src
+RUN sed -i "65a rosbuild_add_executable(MonoPub src/ros_mono_pub.cc)" /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/CMakeLists.txt
+RUN sed -i "66a target_link_libraries(MonoPub \${LIBS})" /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/CMakeLists.txt
 ########## own camera ##########
 RUN mkdir /home/orb_slam2_ws/calibration_files
 COPY realsense.yaml /home/orb_slam2_ws/calibration_files
-RUN mkdir /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/launch
-COPY realsense.launch /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/launch
+# RUN mkdir /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/launch
+# COPY realsense.launch /home/orb_slam2_ws/ORB_SLAM2/Examples/ROS/ORB_SLAM2/launch
 ########## scripts ##########
 RUN mkdir /home/orb_slam2_ws/scripts
 RUN echo "#!/bin/bash\n \
 		cd /home/orb_slam2_ws/ORB_SLAM2 && \
 		./build_ros.sh \
-	" >>  /home/orb_slam2_ws/scripts/ros_build.sh &&\
+	" >>  /home/orb_slam2_ws/scripts/ros_build.sh && \
 	chmod 755 /home/orb_slam2_ws/scripts/ros_build.sh
 RUN echo "#!/bin/bash\n \
 		/home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/mono_tum /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/TUM1.yaml /home/orb_slam2_ws/dataset/rgbd_dataset_freiburg1_xyz \
-	" >>  /home/orb_slam2_ws/scripts/test_dataset.sh &&\
+	" >>  /home/orb_slam2_ws/scripts/test_dataset.sh && \
 	chmod 755 /home/orb_slam2_ws/scripts/test_dataset.sh
 RUN echo "#!/bin/bash\n \
 		roscore & \n \
 		rosrun ORB_SLAM2 Mono /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/ORB_SLAM2/Examples/Monocular/TUM1.yaml & \n \
 		rosbag play LSD_room.bag /image_raw:=/camera/image_raw \
-	" >>  /home/orb_slam2_ws/scripts/test_ros_dataset.sh &&\
+	" >>  /home/orb_slam2_ws/scripts/test_ros_dataset.sh && \
 	chmod 755 /home/orb_slam2_ws/scripts/test_ros_dataset.sh
 RUN echo "#!/bin/bash\n \
-		roslaunch ORB_SLAM2 realsense.launch \
-	" >>  /home/orb_slam2_ws/scripts/realsense.sh &&\
+		roscore & \n \
+		rosrun ORB_SLAM2 Mono /home/orb_slam2_ws/ORB_SLAM2/Vocabulary/ORBvoc.txt /home/orb_slam2_ws/calibration_files/realsense.yaml /camera/image_raw:=/camera/color/image_raw \
+	" >>  /home/orb_slam2_ws/scripts/realsense.sh && \
 	chmod 755 /home/orb_slam2_ws/scripts/realsense.sh
 ########## nvidia-docker hooks ##########
 LABEL com.nvidia.volumes.needed="nvidia_driver"
