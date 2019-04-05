@@ -5,8 +5,8 @@ docker
 nvidia-docker  
 nvidia driver
 ## Build
-mkdir /home/docker_ws  
-cd /home/docker_ws  
+mkdir ~/docker_ws  
+cd ~/docker_ws  
 git clone https://github.com/ozakiryota/docker_orbslam  
 ./build.sh
 ## Run
